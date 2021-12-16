@@ -1,7 +1,7 @@
 ---
 - name: analyze - Merge files list
   set_fact:
-    _log4shell_files: "{{ _log4shell_find_files + _log4shell_lsof_files }}"
+    _log4shell_files: "{{ ( _log4shell_grep_files | default([]) ) +  ( _log4shell_find_files | default([]) ) + ( _log4shell_lsof_files | default([]) )  | list | unique }}"
 
 - block:
     - name: analyze - Analyze jar and war files
@@ -10,6 +10,7 @@
         dest: /tmp  # Also needed in check mode ¯\_(ツ)_/¯
         remote_src: true
         list_files: true
+        include: "*.jar" # Only extract jar files as we only use this to check for version numbers
       check_mode: true
       loop: "{{ _log4shell_files }}"
       register: _log4shell_analyze_unarchive
